@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>花小呗情感化设计 Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@700&display=swap');
+
+  :root {
+    --red: #FF4D4F;
+    --text: #333;
+    --sub: #999;
+    --hint: #C0C0C0;
+    --line: #F0F0F0;
+    --border: #E6E6E6;
+    --bg: linear-gradient(180deg, #F2EBF7 0%, #EAE3F0 100%);
+    --bubble-bot: #FFFFFF;
+    --bubble-user: #E6DFF0;
+    --chip-bg: #F7F5FA;
+    --warm: #FFF7EE;
+    --warm-bd: #FFDEB3;
+    --warm-tx: #CC7A00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overflow: hidden; }
+
+  body {
+    font-family: -apple-system, "PingFang SC", "SF Pro Text", "Helvetica Neue", "Noto Sans SC", sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: #EAE3F0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar { display: none; }
+  button { font-family: inherit; cursor: pointer; border: none; background: none; }
+  button:active { opacity: 0.8; }
+
+  /* ── Phone Frame ── */
+  .phone {
+    max-width: 390px; height: 100vh; margin: 0 auto;
+    display: flex; flex-direction: column; overflow: hidden;
+    background: #EAE3F0;
+  }
+
+  /* ── Status Bar ── */
+  .statusbar {
+    padding: 4px 20px; display: flex; justify-content: space-between; align-items: center;
+    font-size: 15px; font-weight: 600; color: #1A1A1A;
+    background: #F2EBF7; flex-shrink: 0;
+    letter-spacing: -0.3px;
+  }
+  .statusbar .right { display: flex; gap: 5px; align-items: center; }
+  .battery {
+    font-size: 10px; background: #1A1A1A; color: #4CD964;
+    padding: 1px 5px; border-radius: 3px; font-weight: 700;
+    font-family: "SF Mono", "Menlo", monospace;
+  }
+
+  /* ── Header Pill ── */
+  .header-area {
+    padding: 10px 32px 6px; flex-shrink: 0;
+    background: linear-gradient(180deg, #F2EBF7 0%, transparent 100%);
+    position: relative;
+  }
+  .header-pill {
+    background: rgba(255,255,255,0.92); border-radius: 26px;
+    padding: 8px 18px; display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  }
+  .avatar-mascot {
+    width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+    background: radial-gradient(circle at 40% 35%, #FFF0F2 0%, #FFD6DD 55%, #FFBCC8 100%);
+    border: 2.5px solid #FFECEF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .score-area { text-align: center; min-width: 56px; }
+  .score-label { font-size: 11px; color: var(--sub); font-weight: 400; letter-spacing: 0.3px; }
+  .score-num {
+    font-size: 32px; font-weight: 800; color: var(--red); line-height: 1;
+    font-family: "DM Sans", "DIN Alternate", "Helvetica Neue", sans-serif;
+    margin-top: 1px;
+  }
+  .avatar-user {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: #E8E8E8; border: 2px solid white;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23bbb'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4 20c0-4 3.6-7 8-7s8 3 8 7'/%3E%3C/svg%3E");
+    background-size: 55%; background-position: center 55%; background-repeat: no-repeat;
+  }
+  .pill-chevron {
+    position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+    color: #CCC; font-size: 18px; line-height: 1;
+  }
+  .sound-icon {
+    position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+    opacity: 0.3; cursor: pointer;
+  }
+
+  /* ── Chat Area ── */
+  .chat-body {
+    flex: 1; overflow-y: auto; padding: 8px 16px 0;
+    background: var(--bg); position: relative;
+  }
+
+  /* ── Bot Bubble (white, with tail) ── */
+  .msg-bot {
+    margin: 14px 50px 4px 0; position: relative;
+  }
+  .msg-bot .bubble {
+    background: var(--bubble-bot); border-radius: 4px 18px 18px 18px;
+    padding: 13px 16px; font-size: 15px; line-height: 1.7; color: var(--text);
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    letter-spacing: 0.2px;
+  }
+
+  /* ── User Bubble ── */
+  .msg-user {
+    margin: 14px 0 4px 50px; display: flex; justify-content: flex-end;
+  }
+  .msg-user .bubble {
+    background: var(--bubble-user); border-radius: 18px 18px 4px 18px;
+    padding: 11px 15px; font-size: 15px; line-height: 1.6; color: var(--text);
+    letter-spacing: 0.2px;
+  }
+
+  /* ── Feedback (thumbs) ── */
+  .feedback {
+    display: flex; align-items: center; gap: 0; margin: 6px 0 10px;
+  }
+  .feedback button {
+    width: 32px; height: 28px; display: flex; align-items: center; justify-content: center;
+    color: #CCC; font-size: 16px;
+  }
+  .feedback .divider { width: 1px; height: 14px; background: #E8E8E8; }
+
+  /* ── Suggestion Chips ── */
+  .suggestions { display: flex; flex-direction: column; gap: 6px; margin: 6px 0 12px; }
+  .suggest-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 14px; border-radius: 14px;
+    background: var(--chip-bg); font-size: 14px; color: var(--text);
+    border: none; text-align: left; width: fit-content;
+    letter-spacing: 0.2px; line-height: 1.4;
+  }
+  .suggest-chip .emoji { font-size: 16px; flex-shrink: 0; }
+
+  /* ── Loading State ── */
+  .loading-bubble {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 16px; border-radius: 14px;
+    background: var(--chip-bg); font-size: 14px; color: var(--sub);
+    margin: 8px 0;
+  }
+  .spinner {
+    width: 16px; height: 16px; border: 2px solid #FFD4D4;
+    border-top-color: var(--red); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Big Mascot ── */
+  .big-mascot {
+    width: 110px; height: 110px; border-radius: 50%;
+    background: radial-gradient(circle at 40% 35%, #FFF0F2 0%, #FFD6DD 55%, #FFBCC8 100%);
+    border: 3px solid #FFECEF;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 50px; margin: 20px 0 10px -10px;
+    box-shadow: 0 4px 24px rgba(255,180,190,0.25);
+    position: relative;
+  }
+  .mascot-feet {
+    position: absolute; bottom: -4px; display: flex; gap: 6px;
+  }
+  .mascot-feet span {
+    display: block; width: 16px; height: 12px; border-radius: 50%;
+    background: #B8DFAC;
+  }
+
+  /* ── Floating Feedback Button ── */
+  .float-btn {
+    position: fixed; right: 0; top: 55%;
+    background: rgba(50,50,50,0.85); color: white;
+    padding: 8px 12px 8px 10px; border-radius: 20px 0 0 20px;
+    font-size: 12px; display: flex; align-items: center; gap: 5px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    z-index: 10;
+  }
+  .float-btn svg { flex-shrink: 0; }
+
+  /* ── Bottom Chips ── */
+  .bottom-chips {
+    display: flex; gap: 8px; padding: 10px 14px; overflow-x: auto;
+    border-top: 0.5px solid var(--line); background: white; flex-shrink: 0;
+  }
+  .bottom-chip {
+    white-space: nowrap; padding: 8px 14px; border-radius: 8px;
+    border: 0.5px solid var(--border); background: white;
+    font-size: 14px; color: var(--text); font-weight: 400;
+    display: flex; align-items: center; gap: 5px;
+    letter-spacing: 0.1px;
+  }
+  .bottom-chip svg { flex-shrink: 0; opacity: 0.5; }
+
+  /* ── Input Bar ── */
+  .input-bar {
+    padding: 6px 14px 10px; background: white; display: flex; gap: 8px;
+    align-items: center; flex-shrink: 0;
+  }
+  .input-bar input {
+    flex: 1; padding: 10px 16px; border-radius: 22px;
+    border: 0.5px solid #E0E0E0; font-size: 15px; outline: none;
+    background: #F9F9F9; color: var(--text);
+    font-family: inherit; letter-spacing: 0.2px;
+  }
+  .input-bar input::placeholder { color: #C8C8C8; }
+  .mic-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 0.5px solid #E0E0E0; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: white;
+  }
+
+  /* ── AI Tag ── */
+  .ai-tag {
+    text-align: center; padding: 3px 0 7px;
+    font-size: 11px; color: #C8C8C8; background: white; flex-shrink: 0;
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    display: flex; background: white;
+    border-top: 0.5px solid var(--line);
+    padding: 4px 0 8px; flex-shrink: 0;
+  }
+  .tab-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 1px; padding: 3px 0; color: var(--sub); font-size: 10px;
+    font-weight: 400; letter-spacing: 0.3px;
+  }
+  .tab-item.active { color: var(--red); font-weight: 600; }
+  .tab-dot {
+    width: 14px; height: 2.5px; border-radius: 2px;
+    background: var(--red); margin-top: 2px;
+  }
+
+  /* ── Red CTA Button ── */
+  .red-btn {
+    background: var(--red); color: white; border-radius: 15px;
+    padding: 5px 18px; font-size: 13px; font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+  .red-btn-full {
+    width: 100%; padding: 11px 0; border-radius: 22px;
+    font-size: 15px;
+  }
+
+  /* ── Task Card ── */
+  .task-card {
+    background: var(--warm); border-radius: 14px; padding: 14px;
+    margin: 10px 0; border: 0.5px solid var(--warm-bd);
+  }
+  .task-title {
+    font-size: 15px; font-weight: 700; color: var(--warm-tx);
+    margin-bottom: 10px; letter-spacing: 0.5px;
+  }
+  .task-inner {
+    background: white; border-radius: 12px; padding: 16px; text-align: center;
+  }
+
+  /* ── Benefit List ── */
+  .benefit-list {
+    background: white; border-radius: 14px; margin: 10px 14px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .benefit-item {
+    display: flex; align-items: center; padding: 13px 14px;
+    border-bottom: 0.5px solid var(--line);
+  }
+  .benefit-item:last-child { border-bottom: none; }
+  .benefit-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 19px; flex-shrink: 0;
+  }
+  .benefit-info { flex: 1; margin-left: 11px; }
+  .benefit-name { font-size: 14px; color: var(--text); font-weight: 450; }
+  .benefit-desc { font-size: 12px; color: var(--sub); margin-top: 1px; }
+
+  /* ── Memory ── */
+  .mem-layers { display: flex; gap: 8px; padding: 6px 16px 10px; overflow-x: auto; }
+  .mem-layer {
+    flex: 0 0 auto; min-width: 115px; padding: 11px 12px;
+    border-radius: 10px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  }
+  .mem-layer-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .mem-layer-desc { font-size: 11px; color: var(--sub); margin-top: 2px; }
+  .mem-layer-count {
+    font-size: 22px; font-weight: 700; color: var(--red); margin-top: 6px;
+    font-family: "DM Sans", "DIN Alternate", sans-serif;
+  }
+  .mem-layer-count span { font-size: 11px; font-weight: 400; color: var(--sub); }
+  .mem-list {
+    background: white; border-radius: 14px; margin: 0 14px 10px;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+  }
+  .mem-list-title { padding: 11px 14px 6px; font-size: 13px; font-weight: 500; color: var(--sub); }
+  .mem-item {
+    display: flex; align-items: center; padding: 11px 14px;
+    border-bottom: 0.5px solid var(--line);
+  }
+  .mem-item:last-child { border-bottom: none; }
+  .mem-type { font-size: 11px; color: var(--sub); font-weight: 500; }
+  .mem-type.red { color: var(--red); }
+  .mem-text { font-size: 14px; color: var(--text); margin-top: 2px; }
+  .mem-edit { font-size: 12px; color: var(--hint); padding: 4px 8px; }
+
+  /* ── Options list (reject drama) ── */
+  .opt-item {
+    display: flex; align-items: center; padding: 11px 12px;
+    background: white; border-radius: 10px; margin-bottom: 6px;
+    border: 0.5px solid var(--border);
+  }
+  .opt-label {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    background: #FFF0F0; color: var(--red); font-size: 12px; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .opt-info { margin-left: 10px; flex: 1; }
+  .opt-name { font-size: 14px; color: var(--text); }
+  .opt-desc { font-size: 12px; color: var(--sub); }
+
+  /* ── Progress bar ── */
+  .progress-bar { display: flex; gap: 3px; margin-bottom: 14px; }
+  .progress-bar div {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: var(--line); transition: background 0.3s; cursor: pointer;
+  }
+  .progress-bar div.active { background: var(--red); }
+
+  /* ── Act tag ── */
+  .act-tag {
+    font-size: 12px; font-weight: 600; color: var(--red);
+    background: #FFF0F0; padding: 3px 10px; border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* ── Misc ── */
+  .section-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .section-sub { font-size: 12px; color: var(--sub); margin-top: 2px; }
+  .hidden { display: none !important; }
+  .flex-btns { display: flex; gap: 8px; padding: 0 14px 14px; }
+  .outline-btn {
+    flex: 1; padding: 9px; border-radius: 6px; border: 0.5px solid var(--border);
+    background: white; font-size: 13px; color: var(--sub);
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-up { animation: fadeUp 0.35s ease forwards; }
+</style>
+</head>
+<body>
+
+<div class="phone" id="app">
+  <!-- Status Bar -->
+  <div class="statusbar">
+    <div>19:52 ▸</div>
+    <div class="right">
+      <svg width="16" height="12" viewBox="0 0 20 14" fill="#1A1A1A"><rect x="1" y="10" width="3" height="4" rx="0.5"/><rect x="6" y="7" width="3" height="7" rx="0.5"/><rect x="11" y="4" width="3" height="10" rx="0.5"/><rect x="16" y="1" width="3" height="13" rx="0.5"/></svg>
+      <svg width="17" height="12" viewBox="0 0 24 16" fill="none" stroke="#1A1A1A" stroke-width="1.4" stroke-linecap="round"><path d="M1 8a11 11 0 0122 0"/><path d="M5 10a7 7 0 0114 0"/><circle cx="12" cy="13" r="1.5" fill="#1A1A1A" stroke="none"/></svg>
+      <span class="battery">70</span>
+    </div>
+  </div>
+
+  <!-- Page Content -->
+  <div id="page-chat" class="page" style="display:flex; flex-direction:column; flex:1; overflow:hidden;">
+    <!-- Header -->
+    <div class="header-area">
+      <div class="header-pill">
+        <div class="avatar-mascot">🌸</div>
+        <div class="score-area">
+          <div class="score-label">花呗亲密度V1</div>
+          <div class="score-num">60</div>
+        </div>
+        <div class="avatar-user"></div>
+      </div>
+      <div class="pill-chevron">⌄</div>
+      <div class="sound-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="1.5" stroke-linecap="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </div>
+    </div>
+
+    <!-- Chat Body -->
+    <div class="chat-body" id="chat-scroll">
+      <!-- Bot message -->
+      <div class="msg-bot fade-up">
+        <div class="bubble">你知道吗？🤫拍拍左侧花花，我们的亲密度可能会偷偷变高哦～快试试～</div>
+      </div>
+      <div class="feedback">
+        <button>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.8"><path d="M14 9V5a3 3 0 00-3-3l-4 9v11h11.28a2 2 0 002-1.7l1.38-9a2 2 0 00-2-2.3H14z"/><path d="M7 22H4a2 2 0 01-2-2v-7a2 2 0 012-2h3"/></svg>
+        </button>
+        <div class="divider"></div>
+        <button>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CCC" stroke-width="1.8"><path d="M10 15V19a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3H10z"/><path d="M17 2h3a2 2 0 012 2v7a2 2 0 01-2 2h-3"/></svg>
+        </button>
+      </div>
+
+      <!-- Suggestion chips -->
+      <div class="suggestions" id="suggestions">
+        <button class="suggest-chip" onclick="pickSuggest(this, '搞快点，给个涨亲密度的捷径')">
+          <span class="emoji">😊</span>搞快点，给个涨亲密度的捷径
+        </button>
+        <button class="suggest-chip" onclick="pickSuggest(this, '钱不够还款怎么整')">
+          <span class="emoji">😊</span>钱不够还款怎么整
+        </button>
+        <button class="suggest-chip" onclick="pickSuggest(this, '手头紧，给个临额也行啊!')">
+          <span class="emoji">😊</span>手头紧，给个临额也行啊!
+        </button>
+        <button class="suggest-chip" onclick="pickSuggest(this, '没点新花样吗？')">
+          <span class="emoji">😊</span>没点新花样吗？
+        </button>
+      </div>
+
+      <!-- Mascot -->
+      <div class="big-mascot" id="chat-mascot">
+        🌸
+        <div class="mascot-feet"><span></span><span></span></div>
+      </div>
+    </div>
+
+    <!-- Bottom Chips -->
+    <div class="bottom-chips">
+      <button class="bottom-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        消费人格速鉴
+      </button>
+      <button class="bottom-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 14l3-3 3 3"/></svg>
+        快速涨额
+      </button>
+      <button class="bottom-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+        查额度
+      </button>
+      <button class="bottom-chip">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
+        涨亲密度
+      </button>
+    </div>
+
+    <!-- Input -->
+    <div class="input-bar">
+      <input type="text" placeholder="输入文本或长按说话..." id="chat-input" onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="mic-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10a7 7 0 0014 0"/><path d="M12 17v4"/>
+        </svg>
+      </button>
+    </div>
+    <div class="ai-tag">内容由AI生成</div>
+  </div>
+
+  <!-- Page: Closeness -->
+  <div id="page-close" class="page hidden" style="flex:1; overflow-y:auto; background:var(--bg);">
+    <div class="header-area">
+      <div class="header-pill">
+        <div class="avatar-mascot">🌸</div>
+        <div class="score-area"><div class="score-label">花呗亲密度V1</div><div class="score-num">60</div></div>
+        <div class="avatar-user"></div>
+      </div>
+    </div>
+    <div style="text-align:center;padding:10px 0 6px;">
+      <div style="font-size:16px;font-weight:600;color:var(--text);letter-spacing:0.8px;">越高亲密度，越享好权益</div>
+      <div style="font-size:12px;color:var(--sub);margin-top:3px;">本赛季12.25-5.27</div>
+    </div>
+    <div class="benefit-list">
+      <div class="benefit-item"><div class="benefit-icon" style="background:#FFF0F0">⚡</div><div class="benefit-info"><div class="benefit-name">闪购红包</div><div class="benefit-desc">20-10元</div></div><button class="red-btn">领取</button></div>
+      <div class="benefit-item"><div class="benefit-icon" style="background:#FFFBE6">🐟</div><div class="benefit-info"><div class="benefit-name">闲鱼1元红包</div><div class="benefit-desc">无门槛使用</div></div><button class="red-btn">领取</button></div>
+      <div class="benefit-item"><div class="benefit-icon" style="background:#E6F4FF">💠</div><div class="benefit-info"><div class="benefit-name">分期免息</div><div class="benefit-desc">3期免息券</div></div><button class="red-btn">领取</button></div>
+      <div class="benefit-item"><div class="benefit-icon" style="background:#FFF7E6">🎫</div><div class="benefit-info"><div class="benefit-name">花呗分期专享额度券</div><div class="benefit-desc">不占用原花呗额度</div></div><button class="red-btn">领取</button></div>
+      <div class="benefit-item"><div class="benefit-icon" style="background:#FFF0E6">🚕</div><div class="benefit-info"><div class="benefit-name">打车75折</div><div class="benefit-desc">滴滴出行</div></div><button class="red-btn">领取</button></div>
+    </div>
+    <div class="bottom-chips" style="margin-top:auto;">
+      <button class="bottom-chip">涨跌</button>
+      <button class="bottom-chip">📅 账单详情</button>
+      <button class="bottom-chip">📋 查还款日</button>
+      <button class="bottom-chip">📊 我的消费分</button>
+    </div>
+  </div>
+
+  <!-- Page: Memory -->
+  <div id="page-mem" class="page hidden" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="header-area">
+      <div class="header-pill">
+        <div class="avatar-mascot">🌸</div>
+        <div class="score-area"><div class="score-label">花呗亲密度V1</div><div class="score-num">60</div></div>
+        <div class="avatar-user"></div>
+      </div>
+    </div>
+    <div style="flex:1;overflow-y:auto;background:var(--bg);">
+      <div style="padding:12px 16px 6px;">
+        <div class="section-title">花小呗的小本本</div>
+        <div class="section-sub">TA 记住的关于你的一切</div>
+      </div>
+      <div class="mem-layers">
+        <div class="mem-layer"><div class="mem-layer-name">先验层</div><div class="mem-layer-desc">花呗生态数据</div><div class="mem-layer-count">23<span> 条</span></div></div>
+        <div class="mem-layer"><div class="mem-layer-name">共建层</div><div class="mem-layer-desc">你和花小呗的记忆</div><div class="mem-layer-count">7<span> 条</span></div></div>
+        <div class="mem-layer"><div class="mem-layer-name">默契层</div><div class="mem-layer-desc">长期互动沉淀</div><div class="mem-layer-count">8<span> 条</span></div></div>
+      </div>
+      <div class="mem-list">
+        <div class="mem-list-title">共建层记忆</div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type">身份</div><div class="mem-text">大三学生 · 在广州</div></div><button class="mem-edit">编辑</button></div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type">兴趣</div><div class="mem-text">喜欢周杰伦，追 S 赛</div></div><button class="mem-edit">编辑</button></div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type">目标</div><div class="mem-text">本月省 2000 块</div></div><button class="mem-edit">编辑</button></div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type">仪式</div><div class="mem-text">每月15号发薪日</div></div><button class="mem-edit">编辑</button></div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type red">禁区 ⚠</div><div class="mem-text">不要提前任</div></div><button class="mem-edit">编辑</button></div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type">高光</div><div class="mem-text">第一次提额成功 · 2024.3.12</div></div></div>
+        <div class="mem-item"><div style="flex:1"><div class="mem-type">未完待续</div><div class="mem-text">上次说想聊聊毕业旅行计划</div></div><button class="mem-edit">编辑</button></div>
+      </div>
+      <div class="flex-btns">
+        <button class="outline-btn">+ 添加新记忆</button>
+        <button class="outline-btn">导出档案</button>
+      </div>
+      <div class="big-mascot" style="margin-left:8px;">🌸<div class="mascot-feet"><span></span><span></span></div></div>
+    </div>
+    <div class="bottom-chips">
+      <button class="bottom-chip">消费人格速鉴</button>
+      <button class="bottom-chip">快速涨额</button>
+      <button class="bottom-chip">查额度</button>
+    </div>
+    <div class="input-bar"><input placeholder="输入文本或长按说话..."><button class="mic-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><path d="M12 17v4"/></svg></button></div>
+    <div class="ai-tag">内容由AI生成</div>
+  </div>
+
+  <!-- Page: Reject -->
+  <div id="page-reject" class="page hidden" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+    <div class="header-area">
+      <div class="header-pill">
+        <div class="avatar-mascot">🌸</div>
+        <div class="score-area"><div class="score-label">花呗亲密度V1</div><div class="score-num">60</div></div>
+        <div class="avatar-user"></div>
+      </div>
+    </div>
+    <div class="chat-body" id="reject-scroll">
+      <div style="font-size:12px;color:var(--sub);padding:6px 0 10px;line-height:1.6;">场景：小A在大麦买演唱会门票，花呗额度不够，临时提额被拒</div>
+      <div class="progress-bar" id="prog-bar">
+        <div class="active" onclick="goAct(0)"></div>
+        <div onclick="goAct(1)"></div>
+        <div onclick="goAct(2)"></div>
+        <div onclick="goAct(3)"></div>
+        <div onclick="goAct(4)"></div>
+      </div>
+      <div id="act-content"></div>
+      <div class="big-mascot" style="margin-left:-10px;margin-top:16px;">🌸<div class="mascot-feet"><span></span><span></span></div></div>
+    </div>
+    <div style="display:flex;gap:8px;padding:8px 16px;background:transparent;">
+      <button class="outline-btn" id="btn-prev" onclick="goAct(curAct-1)" disabled style="opacity:0.4">← 上一幕</button>
+      <button class="outline-btn" id="btn-next" onclick="goAct(curAct+1)" style="background:var(--red);color:white;border:none;">下一幕 →</button>
+    </div>
+    <div class="bottom-chips">
+      <button class="bottom-chip">消费人格速鉴</button>
+      <button class="bottom-chip">快速涨额</button>
+      <button class="bottom-chip">查额度</button>
+    </div>
+    <div class="input-bar"><input placeholder="输入文本或长按说话..."><button class="mic-btn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" stroke-width="1.5" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0014 0"/><path d="M12 17v4"/></svg></button></div>
+    <div class="ai-tag">内容由AI生成</div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar" id="tab-bar">
+    <button class="tab-item active" onclick="showPage(0)"><span>智能对话</span><div class="tab-dot"></div></button>
+    <button class="tab-item" onclick="showPage(1)"><span>亲密度</span></button>
+    <button class="tab-item" onclick="showPage(2)"><span>小本本</span></button>
+    <button class="tab-item" onclick="showPage(3)"><span>拒额Demo</span></button>
+  </div>
+</div>
+
+<!-- Floating feedback button -->
+<div class="float-btn" id="float-feedback">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  反馈与投诉
+</div>
+
+<script>
+const pages = ['page-chat','page-close','page-mem','page-reject'];
+
+function showPage(idx) {
+  pages.forEach((id, i) => {
+    document.getElementById(id).classList.toggle('hidden', i !== idx);
+  });
+  document.querySelectorAll('.tab-item').forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+    const dot = el.querySelector('.tab-dot');
+    if (i === idx) { if (!dot) { const d = document.createElement('div'); d.className='tab-dot'; el.appendChild(d); } }
+    else { if (dot) dot.remove(); }
+  });
+}
+
+// Chat interactions
+function pickSuggest(el, text) {
+  document.getElementById('suggestions').classList.add('hidden');
+  const scroll = document.getElementById('chat-scroll');
+
+  // Add user bubble
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg-user fade-up';
+  userDiv.innerHTML = `<div class="bubble">${text}</div>`;
+  scroll.insertBefore(userDiv, document.getElementById('chat-mascot'));
+
+  // Loading
+  setTimeout(() => {
+    const loadDiv = document.createElement('div');
+    loadDiv.className = 'fade-up';
+    loadDiv.style.margin = '8px 0';
+    loadDiv.innerHTML = `<div class="loading-bubble"><div class="spinner"></div>花花正在检索内容</div>`;
+    scroll.insertBefore(loadDiv, document.getElementById('chat-mascot'));
+    scroll.scrollTop = scroll.scrollHeight;
+
+    // Bot reply
+    setTimeout(() => {
+      loadDiv.remove();
+      const botDiv = document.createElement('div');
+      botDiv.className = 'msg-bot fade-up';
+      const replies = {
+        '搞快点，给个涨亲密度的捷径': '来啦来啦～多和我聊天、按时还款、设置花呗优先付款，都能涨亲密度哦！',
+        '钱不够还款怎么整': '别慌！我帮你看看：可以用最低还款额先撑一下，或者分期也行。要不要我帮你算算？',
+        '手头紧，给个临额也行啊!': '我帮你看看有没有临时额度可以申请... 你平时的信用还不错，应该有机会的！',
+        '没点新花样吗？': '有有有！你试试消费人格测试，挺好玩的～还能解锁新的花花表情包哦',
+      };
+      botDiv.innerHTML = `<div class="bubble">${replies[text] || '收到！我记下了～'}</div>`;
+      scroll.insertBefore(botDiv, document.getElementById('chat-mascot'));
+      scroll.scrollTop = scroll.scrollHeight;
+    }, 1200);
+  }, 300);
+
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+function sendMsg() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+
+  const scroll = document.getElementById('chat-scroll');
+  const userDiv = document.createElement('div');
+  userDiv.className = 'msg-user fade-up';
+  userDiv.innerHTML = `<div class="bubble">${text}</div>`;
+  scroll.insertBefore(userDiv, document.getElementById('chat-mascot'));
+
+  setTimeout(() => {
+    const loadDiv = document.createElement('div');
+    loadDiv.className = 'fade-up';
+    loadDiv.style.margin = '8px 0';
+    loadDiv.innerHTML = `<div class="loading-bubble"><div class="spinner"></div>花花正在检索内容</div>`;
+    scroll.insertBefore(loadDiv, document.getElementById('chat-mascot'));
+    scroll.scrollTop = scroll.scrollHeight;
+
+    setTimeout(() => {
+      loadDiv.remove();
+      const botDiv = document.createElement('div');
+      botDiv.className = 'msg-bot fade-up';
+      botDiv.innerHTML = `<div class="bubble">花花期待今天能和你有更多有趣的对话。</div>`;
+      scroll.insertBefore(botDiv, document.getElementById('chat-mascot'));
+      scroll.scrollTop = scroll.scrollHeight;
+    }, 1000);
+  }, 300);
+
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+// Reject drama
+const acts = [
+  { t:'第一幕 · 通知', s:'不报警，先陪你深呼吸',
+    bot:['呜...小A，这次我没帮你争取到临时提额...','我知道你挺想去这场的。先别慌，我们看看还有什么路子？'] },
+  { t:'第二幕 · 共情', s:'承认失望是合理的',
+    bot:['花了这么多时间准备，被卡在这一步，换我我也会「诶」一下。','你要不要先发泄两句？我听着。'] },
+  { t:'第三幕 · 解释', s:'透明但不技术',
+    bot:['真实原因我也告诉你：最近 X 个因素让系统觉得「这会儿不能加」。','这不是你不够好，是时机不对。'],
+    act:'查看详细评估 →' },
+  { t:'第四幕 · 行动', s:'三个真实选项',
+    bot:['我帮你想了三条路：'],
+    opts:[{l:'A',n:'备用金取用 1,200 元',d:'利息比临时提额更低'},{l:'B',n:'分 3 期付款',d:'首期 X 元现在就能搞定'},{l:'C',n:'其他支付方式',d:'家人代付或银行卡'}] },
+  { t:'第五幕 · 闭环', s:'留一个温度的尾声',
+    bot:['搞定！演唱会结束后某天，我想听你说现场怎么样——','你要记得回来告诉我哦'],
+    fu:'72小时后：「那天的事你还好吗？」' },
+];
+let curAct = 0;
+
+function goAct(n) {
+  if (n < 0 || n > 4) return;
+  curAct = n;
+  const a = acts[n];
+
+  // Progress
+  document.querySelectorAll('#prog-bar div').forEach((el, i) => el.classList.toggle('active', i <= n));
+
+  // Content
+  let html = `<div style="margin-bottom:14px;"><span class="act-tag">${a.t}</span><span style="font-size:12px;color:var(--sub);margin-left:8px;">${a.s}</span></div>`;
+  a.bot.forEach(line => { html += `<div class="msg-bot"><div class="bubble">${line}</div></div>`; });
+  if (a.act) html += `<div style="margin:8px 0;padding:9px 14px;border-radius:10px;background:white;border:0.5px solid var(--border);font-size:13px;color:var(--red);cursor:pointer;">${a.act}</div>`;
+  if (a.opts) a.opts.forEach(o => { html += `<div class="opt-item"><div class="opt-label">${o.l}</div><div class="opt-info"><div class="opt-name">${o.n}</div><div class="opt-desc">${o.d}</div></div></div>`; });
+  if (a.fu) html += `<div style="margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--warm);border:0.5px solid var(--warm-bd);font-size:13px;color:var(--warm-tx);">⏰ ${a.fu}</div>`;
+
+  document.getElementById('act-content').innerHTML = html;
+
+  // Nav buttons
+  document.getElementById('btn-prev').disabled = n === 0;
+  document.getElementById('btn-prev').style.opacity = n === 0 ? '0.4' : '1';
+  document.getElementById('btn-next').disabled = n === 4;
+  document.getElementById('btn-next').style.background = n === 4 ? 'var(--line)' : 'var(--red)';
+}
+
+goAct(0);
+</script>
+</body>
+</html>

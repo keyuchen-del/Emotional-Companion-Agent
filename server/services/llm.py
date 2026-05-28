@@ -43,10 +43,13 @@ async def chat(messages: list[dict]) -> str:
     return response.choices[0].message.content or ""
 
 
-async def get_embedding(text: str) -> list[float]:
-    client = get_client()
-    response = await client.embeddings.create(
-        model=settings.embedding_model,
-        input=text,
-    )
-    return response.data[0].embedding
+async def get_embedding(text: str) -> list[float] | None:
+    try:
+        client = get_client()
+        response = await client.embeddings.create(
+            model=settings.embedding_model,
+            input=text,
+        )
+        return response.data[0].embedding
+    except Exception:
+        return None

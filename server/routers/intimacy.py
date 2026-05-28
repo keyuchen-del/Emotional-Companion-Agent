@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from server.auth import verify_token
 from server.database import get_db
 from server.models.schemas import IntimacyResponse
 from server.services.intimacy_service import compute_score, get_level, get_next_milestone
 
-router = APIRouter(prefix="/api/intimacy", tags=["intimacy"])
+router = APIRouter(prefix="/api/intimacy", tags=["intimacy"], dependencies=[Depends(verify_token)])
 
 
 @router.get("/{user_id}", response_model=IntimacyResponse)

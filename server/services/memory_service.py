@@ -51,6 +51,16 @@ async def search_memories(
     top_k: int = 5,
 ) -> list[Memory]:
     query_embedding = await get_embedding(query)
+    if query_embedding is None:
+        stmt = (
+            select(Memory)
+            .where(Memory.user_id == user_id)
+            .where(Memory.content.ilike(f"%{query}%"))
+            .order_by(Memory.updated_at.desc())
+            .limit(top_k)
+        )
+        result = await db.execute(stmt)
+        return list(result.scalars().all())
     stmt = (
         select(Memory)
         .where(Memory.user_id == user_id)
@@ -75,7 +85,9 @@ async def update_memory(
 
     if content is not None:
         memory.content = content
-        memory.embedding = await get_embedding(content)
+        embedding = await get_embedding(content)
+        if embedding is not None:
+            memory.embedding = embedding
     if category is not None:
         memory.category = category
     memory.updated_at = datetime.now(timezone.utc)

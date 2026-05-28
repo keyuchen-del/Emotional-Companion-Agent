@@ -1,20 +1,22 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from server.auth import verify_token
 from server.database import get_db
 from server.models.db_models import Conversation, Memory
 from server.models.schemas import ChatRequest
 from server.services.llm import stream_chat
 from server.services.prompt_builder import build_system_prompt
 
-router = APIRouter(prefix="/api", tags=["chat"])
+router = APIRouter(prefix="/api", tags=["chat"], dependencies=[Depends(verify_token)])
 
 HISTORY_LIMIT = 20
+SESSION_EXPIRE_DAYS = 7
 
 
 @router.post("/chat")
@@ -73,7 +75,48 @@ async def chat_endpoint(req: ChatRequest, db: AsyncSession = Depends(get_db)):
         ))
 
         from server.services.intimacy_service import record_event
+        from server.services.memory_service import extract_memories_from_chat
         await record_event(db, req.user_id, "chat")
         await db.commit()
 
+        conversation_text = f"用户: {req.message}\n助手: {assistant_content}"
+        try:
+            await extract_memories_from_chat(db, req.user_id, conversation_text)
+        except Exception:
+            pass
+
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+
+@router.get("/conversations/{user_id}")
+async def get_conversations(
+    user_id: str,
+    session_id: str | None = None,
+    limit: int = Query(default=50, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: AsyncSession = Depends(get_db),
+):
+    stmt = select(Conversation).where(Conversation.user_id == user_id)
+    if session_id:
+        stmt = stmt.where(Conversation.session_id == session_id)
+    stmt = stmt.order_by(Conversation.created_at.desc()).offset(offset).limit(limit)
+    result = await db.execute(stmt)
+    rows = list(reversed(result.scalars().all()))
+    return [
+        {"role": r.role, "content": r.content, "created_at": r.created_at.isoformat(), "session_id": r.session_id}
+        for r in rows
+    ]
+
+
+@router.delete("/conversations/{user_id}/cleanup")
+async def cleanup_old_conversations(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    cutoff = datetime.now(timezone.utc) - timedelta(days=SESSION_EXPIRE_DAYS)
+    result = await db.execute(
+        delete(Conversation)
+        .where(Conversation.user_id == user_id, Conversation.created_at < cutoff)
+    )
+    await db.commit()
+    return {"deleted": result.rowcount}

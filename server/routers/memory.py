@@ -3,11 +3,12 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from server.auth import verify_token
 from server.database import get_db
 from server.models.schemas import MemoryCreate, MemoryResponse, MemoryUpdate
 from server.services import memory_service
 
-router = APIRouter(prefix="/api/memories", tags=["memory"])
+router = APIRouter(prefix="/api/memories", tags=["memory"], dependencies=[Depends(verify_token)])
 
 
 @router.get("/{user_id}", response_model=list[MemoryResponse])

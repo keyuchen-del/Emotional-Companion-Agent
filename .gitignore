@@ -4,3 +4,13 @@
 *~
 .vscode/
 .idea/
+
+# Python
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+
+# Data
+*.db

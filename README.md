@@ -19,7 +19,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI" />
-  <img src="https://img.shields.io/badge/pgvector-向量检索-336791?logo=postgresql&logoColor=white" alt="pgvector" />
+  <img src="https://img.shields.io/badge/pgvector-Vector_Search-336791?logo=postgresql&logoColor=white" alt="pgvector" />
   <img src="https://img.shields.io/badge/OpenAI-SSE_Streaming-412991?logo=openai&logoColor=white" alt="OpenAI" />
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker" />
   <img src="https://github.com/keyuchen-del/Emotional-Companion-Agent/actions/workflows/deploy-pages.yml/badge.svg" alt="Deploy" />

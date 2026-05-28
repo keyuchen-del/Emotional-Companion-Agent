@@ -32,17 +32,82 @@
 | [05](docs/05-relationship-growth.md) | 关系成长体系 | 让用户愿意持续投入与 Agent 的关系 |
 | [06](docs/06-memory-anchors.md) | 禁区锚点 + 未完待续锚点 | 市面 AI 尚无做好的两个记忆维度 |
 
+## 技术架构
+
+项目不仅是设计文档，更是一个**可运行的 Agent 系统**：
+
+```
+┌─────────────────────────────────────────────────┐
+│  Frontend (SSE Streaming)                       │
+│  cases/huaxiaobei/index.html                    │
+└────────────────────┬────────────────────────────┘
+                     │ HTTP/SSE
+┌────────────────────▼────────────────────────────┐
+│  FastAPI Backend                                │
+│  ┌─────────┐  ┌──────────┐  ┌───────────────┐  │
+│  │ Chat    │  │ Memory   │  │ Intimacy      │  │
+│  │ Router  │  │ Router   │  │ Router        │  │
+│  └────┬────┘  └────┬─────┘  └───────┬───────┘  │
+│       │             │                │          │
+│  ┌────▼─────────────▼────────────────▼───────┐  │
+│  │  Services Layer                           │  │
+│  │  • LLM (OpenAI-compatible, streaming)     │  │
+│  │  • Prompt Builder (6章原则 → system prompt)│  │
+│  │  • Memory (三层记忆 + 向量检索)            │  │
+│  │  • Intimacy (事件累加 + 连续天数 bonus)    │  │
+│  └────────────────────┬──────────────────────┘  │
+└───────────────────────┼─────────────────────────┘
+                        │
+┌───────────────────────▼─────────────────────────┐
+│  PostgreSQL + pgvector                          │
+│  memories | conversations | intimacy_events     │
+└─────────────────────────────────────────────────┘
+```
+
+### API 接口
+
+| Method | Endpoint | 功能 |
+|--------|----------|------|
+| POST | `/api/chat` | 流式对话（SSE） |
+| GET | `/api/memories/{user_id}` | 查询三层记忆 |
+| POST | `/api/memories` | 新增共建层记忆 |
+| PUT | `/api/memories/{id}` | 编辑记忆 |
+| DELETE | `/api/memories/{id}` | 删除记忆 |
+| GET | `/api/intimacy/{user_id}` | 获取亲密度分数+等级 |
+
+### 快速启动
+
+```bash
+# 1. 启动数据库
+docker-compose up -d
+
+# 2. 安装依赖
+pip install -r requirements.txt
+
+# 3. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入你的 LLM API Key 和 Base URL
+
+# 4. 启动服务
+uvicorn server.main:app --reload --port 8000
+
+# 5. 访问 http://localhost:8000
+```
+
+支持任何 OpenAI 兼容格式的 LLM API（GPT-4o / Claude / 通义千问 / DeepSeek 等），只需修改 `.env` 中的 `LLM_BASE_URL` 和 `LLM_MODEL`。
+
 ## 已落地案例
 
 ### [花小呗｜支付宝花呗 AI 助手](cases/huaxiaobei/)
 
 首个完整实例。以花呗 AI 助手「花小呗」为载体，完整落地 6 章设计原则。包含 4 个可交互 Demo 页面（智能对话 / 亲密度 / 小本本 / 拒额五幕剧）。
 
-👉 [在线 Demo](https://keyuchen-del.github.io/Emotional-Companion-Agent/cases/huaxiaobei/)
+- 静态预览：[GitHub Pages Demo](https://keyuchen-del.github.io/Emotional-Companion-Agent/cases/huaxiaobei/)
+- 完整体验：本地启动后端，对话由真实 LLM 驱动
 
 ## 版本
 
-当前版本 **v0.1.0** — 首个 case 落地
+当前版本 **v0.2.0** — MVP 后端 + 真实 API 对接
 
 查看 [CHANGELOG](CHANGELOG.md) | [Releases](https://github.com/keyuchen-del/Emotional-Companion-Agent/releases)
 

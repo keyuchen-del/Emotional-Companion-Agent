@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/), and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-05-28
+
+### Added
+
+- **FastAPI 后端**（`server/`）：完整的 Agent 服务端实现
+  - LLM 接入层：OpenAI 兼容格式，支持 SSE 流式输出
+  - 三层记忆系统：pgvector 向量检索 + CRUD API
+  - 亲密度引擎：事件累加模型 + 连续活跃 bonus
+  - Prompt Builder：将 6 章设计原则编译为动态 system prompt
+- **数据库**：PostgreSQL + pgvector（docker-compose 一键启动）
+- **前端改造**：对话/记忆/亲密度对接真实 API，移除硬编码回复
+- 配置文件：`.env.example`、`requirements.txt`、`docker-compose.yml`、`init.sql`
+
+### Changed
+
+- 前端 `cases/huaxiaobei/index.html` 从静态 Demo 升级为可连接后端的完整应用
+- README 新增技术架构图、API 文档、快速启动指南
+
+[0.2.0]: https://github.com/keyuchen-del/Emotional-Companion-Agent/compare/v0.1.0...v0.2.0
+
 ## [0.1.0] - 2026-05-27
 
 ### Added

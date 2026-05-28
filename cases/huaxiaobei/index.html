@@ -528,7 +528,7 @@
         <div class="mem-item"><div style="flex:1"><div class="mem-type">未完待续</div><div class="mem-text">上次说想聊聊毕业旅行计划</div></div><button class="mem-edit">编辑</button></div>
       </div>
       <div class="flex-btns">
-        <button class="outline-btn">+ 添加新记忆</button>
+        <button class="outline-btn" onclick="addMemory()">+ 添加新记忆</button>
         <button class="outline-btn">导出档案</button>
       </div>
       <div class="big-mascot" style="margin-left:8px;">🌸<div class="mascot-feet"><span></span><span></span></div></div>
@@ -592,6 +592,11 @@
 </div>
 
 <script>
+const API_BASE = window.location.origin;
+const USER_ID = localStorage.getItem('companion_user_id') || 'user_' + Math.random().toString(36).slice(2, 10);
+localStorage.setItem('companion_user_id', USER_ID);
+let SESSION_ID = 'session_' + Date.now().toString(36);
+
 const pages = ['page-chat','page-close','page-mem','page-reject'];
 
 function showPage(idx) {
@@ -604,46 +609,153 @@ function showPage(idx) {
     if (i === idx) { if (!dot) { const d = document.createElement('div'); d.className='tab-dot'; el.appendChild(d); } }
     else { if (dot) dot.remove(); }
   });
+  if (idx === 1 || idx === 2) loadIntimacy();
+  if (idx === 2) loadMemories();
 }
 
-// Chat interactions
-function pickSuggest(el, text) {
-  document.getElementById('suggestions').classList.add('hidden');
-  const scroll = document.getElementById('chat-scroll');
+async function loadIntimacy() {
+  try {
+    const res = await fetch(`${API_BASE}/api/intimacy/${USER_ID}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    document.querySelectorAll('.score-num').forEach(el => el.textContent = data.score);
+  } catch (e) {}
+}
 
-  // Add user bubble
+async function loadMemories() {
+  try {
+    const res = await fetch(`${API_BASE}/api/memories/${USER_ID}`);
+    if (!res.ok) return;
+    const memories = await res.json();
+    const prior = memories.filter(m => m.layer === 'prior');
+    const coBuild = memories.filter(m => m.layer === 'co_built');
+    const tacit = memories.filter(m => m.layer === 'tacit');
+
+    const counts = document.querySelectorAll('.mem-layer-count');
+    if (counts.length >= 3) {
+      counts[0].innerHTML = `${prior.length}<span> 条</span>`;
+      counts[1].innerHTML = `${coBuild.length}<span> 条</span>`;
+      counts[2].innerHTML = `${tacit.length}<span> 条</span>`;
+    }
+
+    const memList = document.querySelector('.mem-list');
+    if (memList && coBuild.length > 0) {
+      let html = '<div class="mem-list-title">共建层记忆</div>';
+      coBuild.forEach(m => {
+        const typeClass = m.category === 'taboo' ? 'mem-type red' : 'mem-type';
+        const label = {identity:'身份',preference:'偏好',goal:'目标',event:'高光',taboo:'禁区 ⚠',hook:'未完待续'}[m.category] || m.category || '记忆';
+        html += `<div class="mem-item"><div style="flex:1"><div class="${typeClass}">${label}</div><div class="mem-text">${m.content}</div></div><button class="mem-edit" onclick="editMemory('${m.id}')">编辑</button></div>`;
+      });
+      memList.innerHTML = html;
+    }
+  } catch (e) {}
+}
+
+async function editMemory(id) {
+  const newContent = prompt('编辑记忆内容:');
+  if (!newContent) return;
+  try {
+    await fetch(`${API_BASE}/api/memories/${id}`, {
+      method: 'PUT',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({content: newContent}),
+    });
+    loadMemories();
+  } catch (e) {}
+}
+
+async function addMemory() {
+  const content = prompt('添加新记忆:');
+  if (!content) return;
+  try {
+    await fetch(`${API_BASE}/api/memories`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: USER_ID, layer: 'co_built', content}),
+    });
+    loadMemories();
+  } catch (e) {}
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+async function apiChat(text) {
+  const scroll = document.getElementById('chat-scroll');
+  const mascot = document.getElementById('chat-mascot');
+
   const userDiv = document.createElement('div');
   userDiv.className = 'msg-user fade-up';
-  userDiv.innerHTML = `<div class="bubble">${text}</div>`;
-  scroll.insertBefore(userDiv, document.getElementById('chat-mascot'));
+  userDiv.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+  scroll.insertBefore(userDiv, mascot);
 
-  // Loading
-  setTimeout(() => {
-    const loadDiv = document.createElement('div');
-    loadDiv.className = 'fade-up';
-    loadDiv.style.margin = '8px 0';
-    loadDiv.innerHTML = `<div class="loading-bubble"><div class="spinner"></div>花花正在检索内容</div>`;
-    scroll.insertBefore(loadDiv, document.getElementById('chat-mascot'));
-    scroll.scrollTop = scroll.scrollHeight;
-
-    // Bot reply
-    setTimeout(() => {
-      loadDiv.remove();
-      const botDiv = document.createElement('div');
-      botDiv.className = 'msg-bot fade-up';
-      const replies = {
-        '搞快点，给个涨亲密度的捷径': '来啦来啦～多和我聊天、按时还款、设置花呗优先付款，都能涨亲密度哦！',
-        '钱不够还款怎么整': '别慌！我帮你看看：可以用最低还款额先撑一下，或者分期也行。要不要我帮你算算？',
-        '手头紧，给个临额也行啊!': '我帮你看看有没有临时额度可以申请... 你平时的信用还不错，应该有机会的！',
-        '没点新花样吗？': '有有有！你试试消费人格测试，挺好玩的～还能解锁新的花花表情包哦',
-      };
-      botDiv.innerHTML = `<div class="bubble">${replies[text] || '收到！我记下了～'}</div>`;
-      scroll.insertBefore(botDiv, document.getElementById('chat-mascot'));
-      scroll.scrollTop = scroll.scrollHeight;
-    }, 1200);
-  }, 300);
-
+  const loadDiv = document.createElement('div');
+  loadDiv.className = 'fade-up';
+  loadDiv.style.margin = '8px 0';
+  loadDiv.innerHTML = `<div class="loading-bubble"><div class="spinner"></div>花花正在思考</div>`;
+  scroll.insertBefore(loadDiv, mascot);
   scroll.scrollTop = scroll.scrollHeight;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/chat`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({user_id: USER_ID, message: text, session_id: SESSION_ID}),
+    });
+
+    if (!res.ok) {
+      loadDiv.remove();
+      const errDiv = document.createElement('div');
+      errDiv.className = 'msg-bot fade-up';
+      errDiv.innerHTML = `<div class="bubble" style="color:var(--red)">连接失败，请确认后端服务已启动 (${res.status})</div>`;
+      scroll.insertBefore(errDiv, mascot);
+      scroll.scrollTop = scroll.scrollHeight;
+      return;
+    }
+
+    loadDiv.remove();
+    const botDiv = document.createElement('div');
+    botDiv.className = 'msg-bot fade-up';
+    botDiv.innerHTML = `<div class="bubble"></div>`;
+    scroll.insertBefore(botDiv, mascot);
+    const bubbleEl = botDiv.querySelector('.bubble');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (line.startsWith('data: ')) {
+          const data = line.slice(6);
+          if (data === '[DONE]') break;
+          bubbleEl.textContent += data;
+          scroll.scrollTop = scroll.scrollHeight;
+        }
+      }
+    }
+  } catch (e) {
+    loadDiv.remove();
+    const errDiv = document.createElement('div');
+    errDiv.className = 'msg-bot fade-up';
+    errDiv.innerHTML = `<div class="bubble" style="color:var(--red)">网络错误: ${escapeHtml(e.message)}</div>`;
+    scroll.insertBefore(errDiv, mascot);
+  }
+  scroll.scrollTop = scroll.scrollHeight;
+  loadIntimacy();
+}
+
+function pickSuggest(el, text) {
+  document.getElementById('suggestions').classList.add('hidden');
+  apiChat(text);
 }
 
 function sendMsg() {
@@ -651,35 +763,10 @@ function sendMsg() {
   const text = input.value.trim();
   if (!text) return;
   input.value = '';
-
-  const scroll = document.getElementById('chat-scroll');
-  const userDiv = document.createElement('div');
-  userDiv.className = 'msg-user fade-up';
-  userDiv.innerHTML = `<div class="bubble">${text}</div>`;
-  scroll.insertBefore(userDiv, document.getElementById('chat-mascot'));
-
-  setTimeout(() => {
-    const loadDiv = document.createElement('div');
-    loadDiv.className = 'fade-up';
-    loadDiv.style.margin = '8px 0';
-    loadDiv.innerHTML = `<div class="loading-bubble"><div class="spinner"></div>花花正在检索内容</div>`;
-    scroll.insertBefore(loadDiv, document.getElementById('chat-mascot'));
-    scroll.scrollTop = scroll.scrollHeight;
-
-    setTimeout(() => {
-      loadDiv.remove();
-      const botDiv = document.createElement('div');
-      botDiv.className = 'msg-bot fade-up';
-      botDiv.innerHTML = `<div class="bubble">花花期待今天能和你有更多有趣的对话。</div>`;
-      scroll.insertBefore(botDiv, document.getElementById('chat-mascot'));
-      scroll.scrollTop = scroll.scrollHeight;
-    }, 1000);
-  }, 300);
-
-  scroll.scrollTop = scroll.scrollHeight;
+  apiChat(text);
 }
 
-// Reject drama
+// Reject drama (kept as static demo)
 const acts = [
   { t:'第一幕 · 通知', s:'不报警，先陪你深呼吸',
     bot:['呜...小A，这次我没帮你争取到临时提额...','我知道你挺想去这场的。先别慌，我们看看还有什么路子？'] },
@@ -701,20 +788,13 @@ function goAct(n) {
   if (n < 0 || n > 4) return;
   curAct = n;
   const a = acts[n];
-
-  // Progress
   document.querySelectorAll('#prog-bar div').forEach((el, i) => el.classList.toggle('active', i <= n));
-
-  // Content
   let html = `<div style="margin-bottom:14px;"><span class="act-tag">${a.t}</span><span style="font-size:12px;color:var(--sub);margin-left:8px;">${a.s}</span></div>`;
   a.bot.forEach(line => { html += `<div class="msg-bot"><div class="bubble">${line}</div></div>`; });
   if (a.act) html += `<div style="margin:8px 0;padding:9px 14px;border-radius:10px;background:white;border:0.5px solid var(--border);font-size:13px;color:var(--red);cursor:pointer;">${a.act}</div>`;
   if (a.opts) a.opts.forEach(o => { html += `<div class="opt-item"><div class="opt-label">${o.l}</div><div class="opt-info"><div class="opt-name">${o.n}</div><div class="opt-desc">${o.d}</div></div></div>`; });
   if (a.fu) html += `<div style="margin:12px 0;padding:10px 12px;border-radius:10px;background:var(--warm);border:0.5px solid var(--warm-bd);font-size:13px;color:var(--warm-tx);">⏰ ${a.fu}</div>`;
-
   document.getElementById('act-content').innerHTML = html;
-
-  // Nav buttons
   document.getElementById('btn-prev').disabled = n === 0;
   document.getElementById('btn-prev').style.opacity = n === 0 ? '0.4' : '1';
   document.getElementById('btn-next').disabled = n === 4;
@@ -722,6 +802,7 @@ function goAct(n) {
 }
 
 goAct(0);
+loadIntimacy();
 </script>
 </body>
 </html>

@@ -683,6 +683,25 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+const DEMO_REPLIES = [
+  '嘿～花花收到啦！看起来你今天心情还不错呢，有什么想聊的随时说哦 🌸',
+  '哎呀，你说得对诶！花花记住了，下次一定注意。对了，上次你说想攒钱来着，最近有进展吗？',
+  '花花懂你的意思～有时候就是会有点纠结，不过没关系，慢慢来就好。要不要花花帮你理一理思路？',
+  '收到收到！花花觉得你这个想法蛮好的。你知道吗，能主动想这些说明你比很多人都靠谱呢 ✨',
+  '嗯嗯，花花一直在呢！有什么烦心事都可以跟花花说，虽然花花解决不了所有问题，但至少可以陪你聊聊天嘛～',
+  '哇，这个花花还真没想过诶！不过听你这么一说好像确实有道理。你平时都怎么处理这种情况呀？',
+];
+let demoReplyIdx = 0;
+
+async function demoTyping(bubbleEl, text, scroll) {
+  const chars = [...text];
+  for (let i = 0; i < chars.length; i++) {
+    bubbleEl.textContent += chars[i];
+    scroll.scrollTop = scroll.scrollHeight;
+    await new Promise(r => setTimeout(r, '，。！？、'.includes(chars[i]) ? 40 : 18));
+  }
+}
+
 async function apiChat(text) {
   const scroll = document.getElementById('chat-scroll');
   const mascot = document.getElementById('chat-mascot');
@@ -706,15 +725,7 @@ async function apiChat(text) {
       body: JSON.stringify({user_id: USER_ID, message: text, session_id: SESSION_ID}),
     });
 
-    if (!res.ok) {
-      loadDiv.remove();
-      const errDiv = document.createElement('div');
-      errDiv.className = 'msg-bot fade-up';
-      errDiv.innerHTML = `<div class="bubble" style="color:var(--red)">连接失败，请确认后端服务已启动 (${res.status})</div>`;
-      scroll.insertBefore(errDiv, mascot);
-      scroll.scrollTop = scroll.scrollHeight;
-      return;
-    }
+    if (!res.ok) throw new Error('not ok');
 
     loadDiv.remove();
     const botDiv = document.createElement('div');
@@ -744,10 +755,15 @@ async function apiChat(text) {
     }
   } catch (e) {
     loadDiv.remove();
-    const errDiv = document.createElement('div');
-    errDiv.className = 'msg-bot fade-up';
-    errDiv.innerHTML = `<div class="bubble" style="color:var(--red)">网络错误: ${escapeHtml(e.message)}</div>`;
-    scroll.insertBefore(errDiv, mascot);
+    const botDiv = document.createElement('div');
+    botDiv.className = 'msg-bot fade-up';
+    botDiv.innerHTML = `<div class="bubble"></div>`;
+    scroll.insertBefore(botDiv, mascot);
+    const bubbleEl = botDiv.querySelector('.bubble');
+    const reply = DEMO_REPLIES[demoReplyIdx % DEMO_REPLIES.length];
+    demoReplyIdx++;
+    await new Promise(r => setTimeout(r, 600));
+    await demoTyping(bubbleEl, reply, scroll);
   }
   scroll.scrollTop = scroll.scrollHeight;
   loadIntimacy();

@@ -1,0 +1,300 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: #0F172A;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: #E2E8F0;
+}
+
+/* ─── Landing Layout ─── */
+
+.landing-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 72px;
+  min-height: 100vh;
+  padding: 40px;
+}
+
+/* ─── Landing Info (Left) ─── */
+
+.landing-info {
+  max-width: 420px;
+  flex-shrink: 0;
+  animation: fadeInUp 0.6s ease-out both;
+}
+
+.landing-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.landing-logo-icon {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 32px rgba(244, 114, 182, 0.3);
+}
+
+.landing-logo-text {
+  font-size: 26px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #fff, #94A3B8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+.landing-tagline {
+  font-size: 15px;
+  color: #64748B;
+  margin-bottom: 32px;
+  line-height: 1.7;
+}
+
+.landing-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.landing-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: background 0.2s;
+}
+
+.landing-feature:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.landing-feature-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.landing-feature-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #F1F5F9;
+  margin-bottom: 2px;
+}
+
+.landing-feature-desc {
+  font-size: 12px;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.landing-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+
+.landing-badge {
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94A3B8;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* ─── CTA Buttons ─── */
+
+.landing-cta {
+  display: flex;
+  gap: 10px;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+  background: linear-gradient(135deg, #F472B6, #EC4899);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(244, 114, 182, 0.3);
+}
+
+.cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(244, 114, 182, 0.4);
+}
+
+.cta-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: #CBD5E1;
+  box-shadow: none;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cta-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: none;
+}
+
+/* ─── Phone Frame (Right) ─── */
+
+.phone-wrapper {
+  flex-shrink: 0;
+  text-align: center;
+  animation: fadeInUp 0.6s 0.15s ease-out both;
+}
+
+.phone {
+  width: 390px;
+  height: 844px;
+  background: #EAE3F0;
+  border-radius: 48px;
+  border: 10px solid #111;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    0 40px 80px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset,
+    0 0 120px rgba(244, 114, 182, 0.06);
+}
+
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 34px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 4px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.notch-pill {
+  width: 126px;
+  height: 30px;
+  background: #111;
+  border-radius: 20px;
+}
+
+.phone-screen {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.phone-label {
+  margin-top: 16px;
+  font-size: 12px;
+  color: #475569;
+  letter-spacing: 0.3px;
+}
+
+/* ─── Animations ─── */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 960px) {
+  .landing-layout {
+    flex-direction: column;
+    gap: 40px;
+    padding: 40px 20px 60px;
+  }
+
+  .landing-info {
+    max-width: 100%;
+    text-align: center;
+  }
+
+  .landing-features {
+    text-align: left;
+  }
+
+  .landing-badges,
+  .landing-cta {
+    justify-content: center;
+  }
+
+  .phone {
+    width: 340px;
+    height: 736px;
+  }
+}
+
+@media (max-width: 420px) {
+  body {
+    background: #EAE3F0;
+  }
+
+  .landing-layout {
+    padding: 0;
+    gap: 0;
+  }
+
+  .landing-info {
+    display: none;
+  }
+
+  .phone-wrapper {
+    width: 100%;
+  }
+
+  .phone {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+  }
+
+  .phone-label {
+    display: none;
+  }
+}

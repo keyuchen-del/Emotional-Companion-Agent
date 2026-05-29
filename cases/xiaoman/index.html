@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小满 Mun · 消费陪伴 Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ── warm creamy lifestyle palette ── */
+    --cream:#FCF7EC;
+    --cream-2:#F5ECDA;
+    --paper:#FFFDF7;
+    --card:#FFFFFF;
+
+    --ink:#2E2A24;
+    --ink-soft:#6E6557;
+    --sub:#A89C88;
+    --hint:#C8BCA6;
+    --line:#EFE6D4;
+
+    --honey:#FF9F45;
+    --honey-2:#FFB766;
+    --honey-deep:#EF7E1F;
+    --honey-soft:#FFE9CF;
+
+    --sprout:#5FBE63;
+    --sprout-2:#8AD583;
+    --sprout-soft:#D6F0CC;
+
+    --berry:#FF6F91;
+    --berry-soft:#FFD8E1;
+
+    --sky:#5FB0E8;
+    --sky-soft:#D5ECFB;
+
+    --shadow:0 10px 30px rgba(120,90,40,.10);
+    --shadow-sm:0 4px 14px rgba(120,90,40,.08);
+    --r-lg:26px; --r-md:18px; --r-sm:12px;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;overflow:hidden;}
+  body{
+    font-family:"Fredoka",-apple-system,"PingFang SC","Noto Sans SC","Helvetica Neue",sans-serif;
+    font-size:15px;color:var(--ink);
+    background:#E9DFC9;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::-webkit-scrollbar{display:none;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  button:active{transform:scale(.96);}
+  .num{font-family:"Baloo 2",sans-serif;font-weight:800;}
+
+  /* ── Phone frame ── */
+  .phone{
+    position:relative;max-width:400px;height:100vh;margin:0 auto;
+    display:flex;flex-direction:column;overflow:hidden;
+    background:var(--cream);
+    /* atmospheric background: layered blobs + grain */
+    background-image:
+      radial-gradient(circle at 85% -5%, rgba(255,159,69,.22), transparent 42%),
+      radial-gradient(circle at 8% 12%, rgba(95,190,99,.16), transparent 38%),
+      radial-gradient(circle at 50% 108%, rgba(255,111,145,.16), transparent 46%),
+      radial-gradient(circle at 110% 60%, rgba(95,176,232,.12), transparent 40%);
+  }
+  .phone::after{ /* grain */
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:50;opacity:.5;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+    mix-blend-mode:multiply;
+  }
+
+  /* ── Status bar ── */
+  .statusbar{
+    padding:8px 22px 2px;display:flex;justify-content:space-between;align-items:center;
+    font-size:14px;font-weight:600;color:var(--ink);flex-shrink:0;z-index:20;
+    font-family:"Baloo 2",sans-serif;
+  }
+  .statusbar .right{display:flex;gap:6px;align-items:center;}
+  .battery{font-size:10px;background:var(--ink);color:var(--sprout-2);padding:1px 6px;border-radius:4px;font-weight:700;}
+
+  /* ── Header pill ── */
+  .header{padding:8px 16px 4px;flex-shrink:0;z-index:20;position:relative;}
+  .pill{
+    background:rgba(255,255,255,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+    border:1.5px solid rgba(255,255,255,.9);
+    border-radius:30px;padding:8px 12px;display:flex;align-items:center;gap:10px;
+    box-shadow:var(--shadow-sm);
+  }
+  .pill .brand{flex:1;display:flex;align-items:center;gap:9px;}
+  .brand-name{font-size:15px;font-weight:600;letter-spacing:.3px;}
+  .brand-name small{display:block;font-size:10px;color:var(--sub);font-weight:400;letter-spacing:.5px;margin-top:-1px;}
+  .man-meter{display:flex;align-items:center;gap:7px;}
+  .man-meter .lv{
+    font-size:10px;font-weight:700;color:var(--honey-deep);background:var(--honey-soft);
+    padding:2px 7px;border-radius:8px;font-family:"Baloo 2",sans-serif;
+  }
+  .man-meter .score{font-size:26px;color:var(--honey-deep);line-height:1;}
+  .man-meter .score small{font-size:11px;color:var(--sub);font-weight:500;font-family:"Fredoka";}
+  .user-av{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,#FFD9A8,#FFB1C4);
+    border:2px solid #fff;box-shadow:var(--shadow-sm);
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+
+  /* ── Mascot (CSS-drawn, animatable) ── */
+  .mun{position:relative;width:var(--s,108px);height:var(--s,108px);flex-shrink:0;cursor:pointer;}
+  .mun-body{
+    position:absolute;inset:0;border-radius:48% 48% 46% 46%;
+    background:
+      radial-gradient(circle at 38% 30%, #FFF6E2 0%, #FFE2A8 50%, #FFC76B 100%);
+    box-shadow:0 8px 22px rgba(240,140,30,.28), inset 0 -7px 14px rgba(230,150,40,.22), inset 0 5px 10px rgba(255,255,255,.7);
+    transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+    transform-origin:50% 100%;
+  }
+  .mun.squish .mun-body{animation:squish .45s cubic-bezier(.34,1.56,.64,1);}
+  @keyframes squish{
+    0%{transform:scale(1,1);}
+    30%{transform:scale(1.14,.82);}
+    55%{transform:scale(.92,1.1);}
+    100%{transform:scale(1,1);}
+  }
+  .mun.bob .mun-body{animation:bob 2.6s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0) rotate(-1.5deg);}50%{transform:translateY(-5px) rotate(1.5deg);}}
+  .mun-eye{position:absolute;top:42%;width:11%;height:13%;background:#4A3722;border-radius:50%;
+    animation:blink 4.5s infinite;}
+  .mun-eye.l{left:30%;}
+  .mun-eye.r{right:30%;}
+  .mun-eye::after{content:"";position:absolute;top:14%;left:18%;width:34%;height:34%;background:#fff;border-radius:50%;}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1);}96%{transform:scaleY(.1);}}
+  .mun-cheek{position:absolute;top:55%;width:15%;height:9%;background:rgba(255,120,150,.5);border-radius:50%;filter:blur(1px);}
+  .mun-cheek.l{left:18%;}
+  .mun-cheek.r{right:18%;}
+  .mun-mouth{position:absolute;top:58%;left:50%;transform:translateX(-50%);
+    width:20%;height:11%;border:2.4px solid #4A3722;border-top:none;
+    border-radius:0 0 40px 40px;}
+  .mun-sprout{position:absolute;top:-13%;left:50%;transform:translateX(-50%);width:30%;height:26%;}
+  .mun-sprout::before,.mun-sprout::after{content:"";position:absolute;bottom:0;width:54%;height:90%;
+    background:linear-gradient(160deg,var(--sprout-2),var(--sprout));border-radius:50% 50% 50% 0;}
+  .mun-sprout::before{left:8%;transform:rotate(-26deg);transform-origin:bottom;}
+  .mun-sprout::after{right:8%;transform:rotate(26deg) scaleX(-1);transform-origin:bottom;}
+  .mun-feet{position:absolute;bottom:-5%;left:50%;transform:translateX(-50%);display:flex;gap:18%;width:60%;justify-content:center;}
+  .mun-feet span{width:26%;padding-bottom:14%;height:0;background:#E89A3A;border-radius:50%;}
+  /* moods */
+  .mun.sad .mun-mouth{border:none;border-top:2.4px solid #4A3722;border-radius:40px 40px 0 0;height:9%;top:62%;}
+  .mun.sad .mun-eye{top:44%;height:9%;border-radius:50% 50% 40% 40%;}
+  .mun.sad .mun-tear{position:absolute;top:54%;left:31%;width:8%;height:14%;
+    background:linear-gradient(#bfe3ff,#7cc0f0);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;
+    animation:tear 2.2s ease-in infinite;}
+  @keyframes tear{0%{transform:translateY(0);opacity:0;}30%{opacity:1;}100%{transform:translateY(18px);opacity:0;}}
+  .mun.think .mun-mouth{width:10%;height:0;border:none;border-top:2.4px solid #4A3722;top:64%;}
+  .mun.think .mun-eye.r{transform:scaleY(.2);top:46%;}
+  .mun.joy .mun-mouth{height:15%;width:26%;background:#4A3722;border:none;border-radius:0 0 40px 40px;}
+  .mun.joy .mun-eye{height:8%;border-radius:50% 50% 0 0;transform:scaleY(1);}
+
+  /* avatar-sized mun inside pill */
+  .mun.av{--s:40px;}
+  .mun.av .mun-feet{display:none;}
+
+  /* ── Pages ── */
+  .pages{flex:1;position:relative;overflow:hidden;}
+  .page{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;
+    opacity:0;transform:translateX(8%) scale(.98);pointer-events:none;transition:.32s cubic-bezier(.4,0,.2,1);}
+  .page.active{opacity:1;transform:none;pointer-events:auto;}
+  .scroll{flex:1;overflow-y:auto;padding:6px 16px 14px;}
+
+  /* staggered reveal */
+  .reveal{opacity:0;transform:translateY(14px);animation:rise .5s cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes rise{to{opacity:1;transform:none;}}
+
+  /* ── Chat ── */
+  .day-tag{text-align:center;font-size:11px;color:var(--sub);margin:6px 0 10px;letter-spacing:.5px;}
+  .msg-bot{display:flex;gap:8px;align-items:flex-end;margin:12px 56px 4px 0;}
+  .msg-bot .mini{--s:30px;flex-shrink:0;}
+  .msg-bot .mini .mun-feet{display:none;}
+  .bubble-bot{
+    background:var(--card);border-radius:6px 20px 20px 20px;padding:12px 15px;
+    font-size:15px;line-height:1.65;color:var(--ink);box-shadow:var(--shadow-sm);
+    border:1px solid rgba(255,255,255,.9);
+  }
+  .msg-user{display:flex;justify-content:flex-end;margin:12px 0 4px 56px;}
+  .bubble-user{
+    background:linear-gradient(135deg,var(--honey),var(--honey-2));color:#fff;
+    border-radius:20px 20px 6px 20px;padding:11px 15px;font-size:15px;line-height:1.55;
+    box-shadow:0 6px 16px rgba(240,140,30,.3);
+  }
+  .typing{display:inline-flex;gap:4px;padding:14px 16px;background:var(--card);border-radius:6px 20px 20px 20px;box-shadow:var(--shadow-sm);}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--honey);animation:td 1.2s infinite;}
+  .typing i:nth-child(2){animation-delay:.2s;}
+  .typing i:nth-child(3){animation-delay:.4s;}
+  @keyframes td{0%,60%,100%{transform:translateY(0);opacity:.4;}30%{transform:translateY(-5px);opacity:1;}}
+
+  .chips{display:flex;flex-direction:column;gap:8px;margin:8px 0 4px;}
+  .chip{
+    align-self:flex-start;display:inline-flex;align-items:center;gap:8px;
+    padding:10px 15px;border-radius:16px;background:rgba(255,255,255,.7);
+    border:1.5px solid var(--line);font-size:14px;color:var(--ink-soft);
+    box-shadow:var(--shadow-sm);transition:.2s;
+  }
+  .chip:active{background:var(--honey-soft);border-color:var(--honey);}
+  .chip .e{font-size:16px;}
+
+  .hero-mun{display:flex;flex-direction:column;align-items:center;margin:18px 0 6px;}
+  .hero-mun .mun{--s:120px;}
+  .hero-hint{font-size:12px;color:var(--sub);margin-top:14px;background:rgba(255,255,255,.6);
+    padding:5px 13px;border-radius:14px;}
+
+  /* floating +score */
+  .floater{position:absolute;font-family:"Baloo 2";font-weight:800;color:var(--berry);font-size:18px;
+    pointer-events:none;animation:floatUp 1s ease-out forwards;z-index:60;}
+  @keyframes floatUp{0%{opacity:0;transform:translateY(0) scale(.6);}20%{opacity:1;}100%{opacity:0;transform:translateY(-46px) scale(1.1);}}
+
+  /* ── Quick action bar ── */
+  .quickbar{display:flex;gap:8px;padding:8px 14px;overflow-x:auto;flex-shrink:0;}
+  .qa{white-space:nowrap;display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:14px;
+    background:var(--card);border:1.5px solid var(--line);font-size:13px;color:var(--ink-soft);box-shadow:var(--shadow-sm);}
+  .qa .e{font-size:15px;}
+
+  /* ── Input bar ── */
+  .inputbar{display:flex;gap:9px;align-items:center;padding:6px 14px 8px;flex-shrink:0;}
+  .inputbar input{flex:1;padding:12px 17px;border-radius:24px;border:1.5px solid var(--line);
+    font-size:15px;outline:none;background:rgba(255,255,255,.85);color:var(--ink);font-family:inherit;}
+  .inputbar input::placeholder{color:var(--hint);}
+  .send-btn{width:44px;height:44px;border-radius:50%;flex-shrink:0;
+    background:linear-gradient(135deg,var(--honey),var(--honey-deep));
+    display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(240,140,30,.35);}
+
+  /* ── 满值 page ── */
+  .man-hero{display:flex;flex-direction:column;align-items:center;padding:8px 0 4px;}
+  .ring-wrap{position:relative;width:200px;height:200px;}
+  .ring-wrap svg{transform:rotate(-90deg);}
+  .ring-bg{fill:none;stroke:var(--cream-2);stroke-width:16;}
+  .ring-fg{fill:none;stroke:url(#grad);stroke-width:16;stroke-linecap:round;
+    stroke-dasharray:534;stroke-dashoffset:534;transition:stroke-dashoffset 1.3s cubic-bezier(.3,.8,.3,1);}
+  .ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+  .ring-center .big{font-size:54px;color:var(--honey-deep);line-height:1;}
+  .ring-center .lab{font-size:12px;color:var(--sub);margin-top:4px;letter-spacing:1px;}
+  .lv-row{display:flex;align-items:center;gap:10px;margin:14px 0 2px;}
+  .lv-badge{font-family:"Baloo 2";font-weight:700;font-size:13px;color:#fff;padding:5px 14px;border-radius:14px;
+    background:linear-gradient(135deg,var(--berry),#ff8fa8);box-shadow:0 6px 14px rgba(255,111,145,.3);}
+  .next-hint{font-size:12px;color:var(--sub);}
+
+  .sec-title{display:flex;align-items:baseline;gap:8px;margin:18px 2px 10px;}
+  .sec-title h3{font-size:16px;font-weight:600;}
+  .sec-title span{font-size:11px;color:var(--sub);}
+
+  .perks{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .perk{background:var(--card);border-radius:var(--r-md);padding:13px;box-shadow:var(--shadow-sm);
+    border:1px solid rgba(255,255,255,.9);position:relative;overflow:hidden;}
+  .perk .ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:19px;margin-bottom:8px;}
+  .perk .pn{font-size:14px;font-weight:600;}
+  .perk .pd{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.4;}
+  .perk .tag{position:absolute;top:10px;right:10px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;}
+  .tag.on{color:var(--sprout);background:var(--sprout-soft);}
+  .tag.lock{color:var(--sub);background:var(--cream-2);}
+
+  .timeline{background:var(--card);border-radius:var(--r-md);padding:6px 16px;box-shadow:var(--shadow-sm);}
+  .tl-item{display:flex;gap:12px;padding:11px 0;position:relative;}
+  .tl-item:not(:last-child){border-bottom:1px solid var(--line);}
+  .tl-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0;margin-top:3px;background:var(--honey);box-shadow:0 0 0 4px var(--honey-soft);}
+  .tl-dot.g{background:var(--sprout);box-shadow:0 0 0 4px var(--sprout-soft);}
+  .tl-dot.p{background:var(--berry);box-shadow:0 0 0 4px var(--berry-soft);}
+  .tl-txt{font-size:14px;}
+  .tl-date{font-size:11px;color:var(--sub);margin-top:1px;font-family:"Baloo 2";}
+
+  /* ── 满记 / memory ── */
+  .mem-layers{display:flex;gap:10px;overflow-x:auto;padding:4px 0 10px;}
+  .mlayer{flex:0 0 auto;width:128px;padding:13px;border-radius:var(--r-md);color:#fff;box-shadow:var(--shadow-sm);}
+  .mlayer.a{background:linear-gradient(140deg,#8AD583,#5FBE63);}
+  .mlayer.b{background:linear-gradient(140deg,#FFB766,#FF9F45);}
+  .mlayer.c{background:linear-gradient(140deg,#ff8fa8,#FF6F91);}
+  .mlayer .mn{font-size:14px;font-weight:600;}
+  .mlayer .md{font-size:10px;opacity:.85;margin-top:2px;line-height:1.4;}
+  .mlayer .mc{font-family:"Baloo 2";font-weight:800;font-size:30px;margin-top:8px;line-height:1;}
+  .mlayer .mc small{font-size:11px;font-weight:500;opacity:.85;}
+
+  .mcard{background:var(--card);border-radius:var(--r-md);box-shadow:var(--shadow-sm);overflow:hidden;}
+  .mcard-h{padding:12px 15px 6px;font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.5px;}
+  .mitem{display:flex;align-items:center;gap:11px;padding:12px 15px;border-bottom:1px solid var(--line);}
+  .mitem:last-child{border-bottom:none;}
+  .mtype{font-size:10px;font-weight:700;padding:3px 8px;border-radius:8px;flex-shrink:0;color:var(--ink-soft);background:var(--cream-2);}
+  .mtype.warn{color:var(--berry);background:var(--berry-soft);}
+  .mtype.open{color:var(--sky);background:var(--sky-soft);}
+  .mtype.hi{color:var(--honey-deep);background:var(--honey-soft);}
+  .mtext{flex:1;font-size:14px;}
+  .medit{font-size:12px;color:var(--hint);padding:5px 6px;}
+  .mem-acts{display:flex;gap:10px;margin-top:12px;}
+  .mem-acts button{flex:1;padding:11px;border-radius:14px;background:rgba(255,255,255,.7);border:1.5px solid var(--line);font-size:13px;color:var(--ink-soft);}
+
+  /* ── 五幕剧 ── */
+  .drama-scene{font-size:12px;color:var(--ink-soft);line-height:1.6;background:rgba(255,255,255,.6);
+    padding:11px 14px;border-radius:14px;margin:4px 0 12px;border:1.5px dashed var(--line);}
+  .prog{display:flex;gap:5px;margin-bottom:14px;}
+  .prog div{flex:1;height:5px;border-radius:3px;background:var(--cream-2);transition:.3s;cursor:pointer;}
+  .prog div.on{background:linear-gradient(90deg,var(--honey),var(--honey-deep));}
+  .act-tag{display:inline-block;font-size:12px;font-weight:700;color:#fff;padding:4px 12px;border-radius:10px;
+    background:linear-gradient(135deg,var(--honey),var(--honey-deep));}
+  .act-sub{font-size:12px;color:var(--sub);margin-left:8px;}
+  .opt{display:flex;align-items:center;gap:11px;background:var(--card);border-radius:14px;padding:12px;margin-bottom:8px;box-shadow:var(--shadow-sm);}
+  .opt-l{width:26px;height:26px;border-radius:50%;flex-shrink:0;background:var(--honey-soft);color:var(--honey-deep);
+    font-family:"Baloo 2";font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;}
+  .opt-n{font-size:14px;font-weight:600;}
+  .opt-d{font-size:12px;color:var(--sub);}
+  .followup{background:var(--sprout-soft);border-radius:14px;padding:12px 14px;font-size:13px;color:#3c7a3e;margin-top:10px;display:flex;gap:8px;align-items:flex-start;}
+  .detail-box{background:var(--card);border-radius:14px;padding:11px 14px;font-size:13px;color:var(--honey-deep);box-shadow:var(--shadow-sm);margin:8px 0;}
+  .drama-nav{display:flex;gap:10px;padding:8px 16px;flex-shrink:0;}
+  .drama-nav button{flex:1;padding:12px;border-radius:16px;font-size:14px;font-weight:600;}
+  .nav-prev{background:rgba(255,255,255,.7);border:1.5px solid var(--line);color:var(--ink-soft);}
+  .nav-next{background:linear-gradient(135deg,var(--honey),var(--honey-deep));color:#fff;box-shadow:0 6px 16px rgba(240,140,30,.3);}
+  .nav-next:disabled,.nav-prev:disabled{opacity:.4;}
+
+  /* ── Tab bar ── */
+  .tabbar{display:flex;background:rgba(255,255,255,.82);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom));flex-shrink:0;z-index:20;}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--sub);font-size:11px;transition:.2s;}
+  .tab svg{width:22px;height:22px;stroke-width:1.8;transition:.2s;}
+  .tab.active{color:var(--honey-deep);}
+  .tab.active svg{transform:translateY(-2px) scale(1.08);}
+  .tab .dot{width:5px;height:5px;border-radius:50%;background:var(--honey-deep);opacity:0;transition:.2s;}
+  .tab.active .dot{opacity:1;}
+
+  /* toast */
+  .toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);
+    background:rgba(46,42,36,.92);color:#fff;padding:9px 18px;border-radius:20px;font-size:13px;
+    opacity:0;transition:.3s;z-index:80;pointer-events:none;white-space:nowrap;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  .ai-note{text-align:center;font-size:10px;color:var(--hint);padding:2px 0 4px;letter-spacing:.5px;}
+</style>
+</head>
+<body>
+<div class="phone" id="app">
+
+  <!-- status bar -->
+  <div class="statusbar">
+    <div>20:14</div>
+    <div class="right">
+      <svg width="17" height="12" viewBox="0 0 20 14" fill="var(--ink)"><rect x="1" y="10" width="3" height="4" rx="1"/><rect x="6" y="7" width="3" height="7" rx="1"/><rect x="11" y="4" width="3" height="10" rx="1"/><rect x="16" y="1" width="3" height="13" rx="1"/></svg>
+      <span class="battery">76</span>
+    </div>
+  </div>
+
+  <!-- header pill -->
+  <div class="header">
+    <div class="pill">
+      <div class="brand">
+        <div class="mun av bob" onclick="petMun(this)">
+          <div class="mun-sprout"></div>
+          <div class="mun-body"><span class="mun-eye l"></span><span class="mun-eye r"></span><span class="mun-cheek l"></span><span class="mun-cheek r"></span><span class="mun-mouth"></span></div>
+        </div>
+        <div class="brand-name">小满 <small>Mun · 消费陪伴</small></div>
+      </div>
+      <div class="man-meter">
+        <span class="lv">Lv.4</span>
+        <span class="score num"><span id="score">62</span><small>满值</small></span>
+      </div>
+      <div class="user-av">🧃</div>
+    </div>
+  </div>
+
+  <div class="pages">
+
+    <!-- ════ PAGE 1 · 聊聊 ════ -->
+    <section class="page active" id="p-chat">
+      <div class="scroll" id="chatScroll">
+        <div class="day-tag reveal">今天 · 晚上好呀</div>
+
+        <div class="msg-bot reveal" style="animation-delay:.05s">
+          <div class="mun mini" onclick="petMun(this)"><div class="mun-sprout"></div><div class="mun-body"><span class="mun-eye l"></span><span class="mun-eye r"></span><span class="mun-cheek l"></span><span class="mun-cheek r"></span><span class="mun-mouth"></span></div></div>
+          <div class="bubble-bot">悄悄说～拍拍我会软软地弹一下，咱们的满值也会偷偷涨哦 🌱 今天想聊点啥？</div>
+        </div>
+
+        <div class="chips reveal" id="chips" style="animation-delay:.15s">
+          <button class="chip" onclick="pick(this,'这个月又乱花钱了，好崩溃')"><span class="e">😮‍💨</span>这个月又乱花钱了，好崩溃</button>
+          <button class="chip" onclick="pick(this,'帮我看看这双鞋到底值不值得买')"><span class="e">👟</span>帮我看看这双鞋到底值不值得买</button>
+          <button class="chip" onclick="pick(this,'心愿单里的相机降价了吗？')"><span class="e">📷</span>心愿单里的相机降价了吗？</button>
+          <button class="chip" onclick="pick(this,'推荐点便宜又好用的小东西')"><span class="e">✨</span>推荐点便宜又好用的小东西</button>
+        </div>
+
+        <div class="hero-mun reveal" style="animation-delay:.25s">
+          <div class="mun bob" id="heroMun" onclick="petMun(this)">
+            <div class="mun-sprout"></div>
+            <div class="mun-body"><span class="mun-eye l"></span><span class="mun-eye r"></span><span class="mun-cheek l"></span><span class="mun-cheek r"></span><span class="mun-mouth"></span></div>
+            <div class="mun-feet"><span></span><span></span></div>
+          </div>
+          <div class="hero-hint">轻轻戳一下试试 👆</div>
+        </div>
+      </div>
+
+      <div class="quickbar">
+        <button class="qa"><span class="e">🔍</span>值不值得买</button>
+        <button class="qa"><span class="e">📉</span>降价提醒</button>
+        <button class="qa"><span class="e">📊</span>本月消费复盘</button>
+        <button class="qa"><span class="e">💝</span>心愿单</button>
+      </div>
+      <div class="inputbar">
+        <input id="chatInput" placeholder="说点什么，或长按说话…" onkeydown="if(event.key==='Enter')send()">
+        <button class="send-btn" onclick="send()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+      <div class="ai-note">内容由 AI 生成 · 小满会陪你，但不替你做决定</div>
+    </section>
+
+    <!-- ════ PAGE 2 · 满值 ════ -->
+    <section class="page" id="p-grow">
+      <div class="scroll">
+        <div class="man-hero reveal">
+          <div class="ring-wrap">
+            <svg width="200" height="200" viewBox="0 0 200 200">
+              <defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#FFB766"/><stop offset="1" stop-color="#FF6F91"/>
+              </linearGradient></defs>
+              <circle class="ring-bg" cx="100" cy="100" r="85"/>
+              <circle class="ring-fg" id="ringFg" cx="100" cy="100" r="85"/>
+            </svg>
+            <div class="ring-center">
+              <div class="big num">62</div>
+              <div class="lab">满值 · MUN</div>
+            </div>
+          </div>
+          <div class="lv-row">
+            <span class="lv-badge">Lv.4 · 老朋友</span>
+            <span class="next-hint">再 38 点解锁 Lv.5「灵魂搭子」</span>
+          </div>
+        </div>
+
+        <div class="sec-title reveal"><h3>陪伴权益</h3><span>满值越高，小满越懂你</span></div>
+        <div class="perks reveal">
+          <div class="perk"><span class="tag on">已解锁</span><div class="ic" style="background:var(--honey-soft)">📉</div><div class="pn">全网比价</div><div class="pd">下单前帮你扒一圈最低价</div></div>
+          <div class="perk"><span class="tag on">已解锁</span><div class="ic" style="background:var(--sprout-soft)">💝</div><div class="pn">心愿单守护</div><div class="pd">降价/补货第一时间喊你</div></div>
+          <div class="perk"><span class="tag on">已解锁</span><div class="ic" style="background:var(--berry-soft)">📊</div><div class="pn">月度复盘</div><div class="pd">温柔版账单，不审判</div></div>
+          <div class="perk"><span class="tag lock">Lv.5</span><div class="ic" style="background:var(--sky-soft)">🎭</div><div class="pn">专属表情包</div><div class="pd">小满限定动图解锁</div></div>
+        </div>
+
+        <div class="sec-title reveal"><h3>我们的成长里程</h3><span>一起走过的小事</span></div>
+        <div class="timeline reveal">
+          <div class="tl-item"><div class="tl-dot p"></div><div><div class="tl-txt">你第一次忍住没冲动下单 🎉</div><div class="tl-date">2026.05.20</div></div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-txt">帮你省下 ¥240（球鞋蹲到了史低）</div><div class="tl-date">2026.05.11</div></div></div>
+          <div class="tl-item"><div class="tl-dot g"></div><div><div class="tl-txt">连续 7 天来和我说晚安</div><div class="tl-date">2026.05.03</div></div></div>
+          <div class="tl-item"><div class="tl-dot"></div><div><div class="tl-txt">我们认识啦，你给我起名「小满」</div><div class="tl-date">2026.03.12</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ PAGE 3 · 满记 ════ -->
+    <section class="page" id="p-mem">
+      <div class="scroll">
+        <div class="sec-title reveal" style="margin-top:8px"><h3>满记 · 小满的小本本</h3><span>TA 记住的关于你的一切</span></div>
+        <div class="mem-layers reveal">
+          <div class="mlayer a"><div class="mn">先验层</div><div class="md">平台已知的偏好</div><div class="mc num">21<small> 条</small></div></div>
+          <div class="mlayer b"><div class="mn">共建层</div><div class="md">你亲口告诉我的</div><div class="mc num">8<small> 条</small></div></div>
+          <div class="mlayer c"><div class="mn">默契层</div><div class="md">长期互动沉淀</div><div class="mc num">6<small> 条</small></div></div>
+        </div>
+
+        <div class="mcard reveal">
+          <div class="mcard-h">共建层 · 你告诉过我</div>
+          <div class="mitem"><span class="mtype">身份</span><span class="mtext">大三学生 · 在广州</span><button class="medit" onclick="toast('已打开编辑')">编辑</button></div>
+          <div class="mitem"><span class="mtype">兴趣</span><span class="mtext">周杰伦、球鞋、咖啡探店</span><button class="medit" onclick="toast('已打开编辑')">编辑</button></div>
+          <div class="mitem"><span class="mtype">目标</span><span class="mtext">这学期攒下 ¥3000</span><button class="medit" onclick="toast('已打开编辑')">编辑</button></div>
+          <div class="mitem"><span class="mtype">仪式</span><span class="mtext">每月 15 号到生活费</span><button class="medit" onclick="toast('已打开编辑')">编辑</button></div>
+          <div class="mitem"><span class="mtype warn">禁区 ⚠</span><span class="mtext">别催我买东西 / 不提前任</span><button class="medit" onclick="toast('已打开编辑')">编辑</button></div>
+          <div class="mitem"><span class="mtype hi">高光</span><span class="mtext">第一次退掉了购物车里的冲动单</span></div>
+          <div class="mitem"><span class="mtype open">未完待续</span><span class="mtext">上次说想入手一台相机，还没定型号</span><button class="medit" onclick="toast('继续上次的话题')">续聊</button></div>
+        </div>
+
+        <div class="mem-acts reveal">
+          <button onclick="toast('记一笔新的')">＋ 添加新记忆</button>
+          <button onclick="toast('档案已导出')">导出我的档案</button>
+        </div>
+
+        <div class="hero-mun reveal" style="margin:18px 0 6px">
+          <div class="mun think" onclick="petMun(this)"><div class="mun-sprout"></div><div class="mun-body"><span class="mun-eye l"></span><span class="mun-eye r"></span><span class="mun-cheek l"></span><span class="mun-cheek r"></span><span class="mun-mouth"></span></div><div class="mun-feet"><span></span><span></span></div></div>
+          <div class="hero-hint">禁区里的事，我绝对不碰 🤐</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════ PAGE 4 · 五幕剧 ════ -->
+    <section class="page" id="p-drama">
+      <div class="scroll" id="dramaScroll">
+        <div class="drama-scene reveal">场景：限量联名球鞋发售，小满帮你蹲了一整周，结果手慢了 30 秒，没抢到。坏消息怎么说，才不冷冰冰？</div>
+        <div class="prog reveal" id="prog">
+          <div class="on" onclick="goAct(0)"></div><div onclick="goAct(1)"></div><div onclick="goAct(2)"></div><div onclick="goAct(3)"></div><div onclick="goAct(4)"></div>
+        </div>
+        <div id="actBox"></div>
+        <div class="hero-mun" style="margin:16px 0 6px">
+          <div class="mun sad" id="dramaMun"><div class="mun-sprout"></div><div class="mun-body"><span class="mun-eye l"></span><span class="mun-eye r"></span><span class="mun-cheek l"></span><span class="mun-cheek r"></span><span class="mun-mouth"></span><span class="mun-tear"></span></div><div class="mun-feet"><span></span><span></span></div></div>
+        </div>
+      </div>
+      <div class="drama-nav">
+        <button class="nav-prev" id="prev" onclick="goAct(cur-1)" disabled>← 上一幕</button>
+        <button class="nav-next" id="next" onclick="goAct(cur+1)">下一幕 →</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- tab bar -->
+  <nav class="tabbar">
+    <button class="tab active" onclick="showPage(0,this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 11.5a8.38 8.38 0 01-9 8.4 9 9 0 01-4-1L3 20l1.1-4.5A8.38 8.38 0 0112 3a8.5 8.5 0 019 8.5z"/></svg>
+      <span>聊聊</span><div class="dot"></div></button>
+    <button class="tab" onclick="showPage(1,this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s-7-4.5-9.5-9A5 5 0 0112 5a5 5 0 019.5 7c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+      <span>满值</span><div class="dot"></div></button>
+    <button class="tab" onclick="showPage(2,this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5a2 2 0 012-2h12a2 2 0 012 2v16l-4-3-4 3-4-3-4 3V5z"/></svg>
+      <span>满记</span><div class="dot"></div></button>
+    <button class="tab" onclick="showPage(3,this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>五幕剧</span><div class="dot"></div></button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* ── page switch ── */
+const ids=['p-chat','p-grow','p-mem','p-drama'];
+let ringDone=false;
+function showPage(i,el){
+  ids.forEach((id,k)=>document.getElementById(id).classList.toggle('active',k===i));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(i===1&&!ringDone){ringDone=true;setTimeout(drawRing,200);}
+}
+function drawRing(){
+  const c=534, pct=62/100;
+  document.getElementById('ringFg').style.strokeDashoffset=c*(1-pct);
+}
+
+/* ── mascot pet ── */
+let score=62;
+function petMun(el){
+  el.classList.remove('squish');void el.offsetWidth;el.classList.add('squish');
+  if(score<100){
+    score++;
+    document.getElementById('score').textContent=score;
+    const f=document.createElement('div');
+    f.className='floater';f.textContent='+1';
+    const r=el.getBoundingClientRect(),a=document.getElementById('app').getBoundingClientRect();
+    f.style.left=(r.left-a.left+r.width/2-8)+'px';
+    f.style.top=(r.top-a.top-6)+'px';
+    document.getElementById('app').appendChild(f);
+    setTimeout(()=>f.remove(),1000);
+  }
+}
+
+/* ── toast ── */
+let tT;
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(tT);tT=setTimeout(()=>t.classList.remove('show'),1600);
+}
+
+/* ── chat ── */
+const replies={
+  '这个月又乱花钱了，好崩溃':'抱抱 🫂 先别骂自己。要不咱们一起看看钱都去哪了？我把你这个月的消费做成一张温柔版小图，不审判，只是想让你心里有底～',
+  '帮我看看这双鞋到底值不值得买':'发我链接，我顺手做三件事：① 全网比个价 ② 翻翻真实穿着评价 ③ 算算它在你心愿单里排第几。值不值，咱们一起判断 👟',
+  '心愿单里的相机降价了吗？':'我盯着呢 📷 那台目前还没动，不过历史最低出现在 618 前后。要不要我设个「到 ¥X 喊我」的提醒？到价我第一时间戳你。',
+  '推荐点便宜又好用的小东西':'懂你这种「小确幸预算」～按你最近喜欢的咖啡探店，给你挑了几样 30 元以内的好物，要看看吗？✨'
+};
+function pushUser(text){
+  const s=document.getElementById('chatScroll');
+  const u=document.createElement('div');u.className='msg-user';
+  u.innerHTML=`<div class="bubble-user">${text}</div>`;
+  s.insertBefore(u,s.querySelector('.hero-mun'));
+  s.scrollTop=s.scrollHeight;
+}
+function botReply(text){
+  const s=document.getElementById('chatScroll');
+  const t=document.createElement('div');t.className='msg-bot';
+  t.innerHTML=`<div class="mun mini"><div class="mun-sprout"></div><div class="mun-body"><span class="mun-eye l"></span><span class="mun-eye r"></span><span class="mun-cheek l"></span><span class="mun-cheek r"></span><span class="mun-mouth"></span></div></div><div class="typing"><i></i><i></i><i></i></div>`;
+  s.insertBefore(t,s.querySelector('.hero-mun'));
+  s.scrollTop=s.scrollHeight;
+  setTimeout(()=>{
+    t.querySelector('.typing').outerHTML=`<div class="bubble-bot">${text}</div>`;
+    s.scrollTop=s.scrollHeight;
+  },1100);
+}
+function pick(el,text){
+  document.getElementById('chips').style.display='none';
+  pushUser(text);botReply(replies[text]||'我记下啦～');
+}
+function send(){
+  const i=document.getElementById('chatInput');const v=i.value.trim();if(!v)return;
+  i.value='';document.getElementById('chips').style.display='none';
+  pushUser(v);botReply('收到 🌱 我陪你一起想办法，慢慢来不着急。');
+}
+
+/* ── five acts ── */
+const acts=[
+  {t:'第一幕 · 通知',s:'先稳住情绪，不甩锅',mood:'sad',
+   bot:['唉…没抢到 😣 手慢了半分钟，库存就空了。','我知道你蹲了一整周，先别急着难过，咱们一步步来。']},
+  {t:'第二幕 · 共情',s:'承认失望是合理的',mood:'sad',
+   bot:['这种「差一点点」最难受了，换我也会捶大腿。','想吐槽两句就吐槽，我听着，不打断你。']},
+  {t:'第三幕 · 解释',s:'透明，但不甩术语',mood:'think',
+   bot:['说点实话：这次是限量 + 黄牛脚本抢，普通手速真的很吃亏，不是你不够快。','下次这种发售，我可以提前帮你算好倒计时、备好地址，胜率能高不少。'],
+   detail:'查看本次发售复盘 →'},
+  {t:'第四幕 · 行动',s:'给三条真实的路',mood:'think',
+   bot:['别灰心，我帮你想了三条路：'],
+   opts:[{l:'A',n:'蹲二级市场合理价',d:'我帮你设溢价上限，超了就拦住你'},{l:'B',n:'等下一批补货',d:'官方说两周后再放一批，我盯着'},{l:'C',n:'看看同系列替代款',d:'有两双风格很近，价更友好'}]},
+  {t:'第五幕 · 闭环',s:'留一个有温度的尾声',mood:'joy',
+   bot:['不管最后买没买，这双鞋都没那么重要——你开心才重要。','对了，过两天我会回来问你：那天的失落，缓过来了吗？'],
+   fu:'⏰ 72 小时后：「上次没抢到的事，你现在还好吗？」'}
+];
+let cur=0;
+function goAct(n){
+  if(n<0||n>4)return;cur=n;const a=acts[n];
+  document.querySelectorAll('#prog div').forEach((d,i)=>d.classList.toggle('on',i<=n));
+  document.getElementById('dramaMun').className='mun '+a.mood;
+  let h=`<div style="margin-bottom:12px"><span class="act-tag">${a.t}</span><span class="act-sub">${a.s}</span></div>`;
+  a.bot.forEach(line=>h+=`<div class="msg-bot" style="margin-left:0"><div class="bubble-bot">${line}</div></div>`);
+  if(a.detail)h+=`<div class="detail-box">${a.detail}</div>`;
+  if(a.opts)a.opts.forEach(o=>h+=`<div class="opt"><div class="opt-l">${o.l}</div><div><div class="opt-n">${o.n}</div><div class="opt-d">${o.d}</div></div></div>`);
+  if(a.fu)h+=`<div class="followup">${a.fu}</div>`;
+  const box=document.getElementById('actBox');
+  box.style.opacity=0;
+  setTimeout(()=>{box.innerHTML=h;box.style.transition='.3s';box.style.opacity=1;},120);
+  document.getElementById('prev').disabled=n===0;
+  document.getElementById('next').disabled=n===4;
+}
+goAct(0);
+</script>
+</body>
+</html>

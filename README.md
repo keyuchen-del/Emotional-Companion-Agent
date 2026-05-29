@@ -182,17 +182,25 @@ uvicorn server.main:app --reload --port 8000
 
 ## 已落地案例
 
+### [小满 Mun · 面向年轻人的消费陪伴 Agent](cases/xiaoman/)
+
+中性品牌实例，**淡化金融借贷**，聚焦年轻人「买什么 / 值不值 / 怎么省 / 钱花完后的情绪」。品牌内核取自节气「小满」——小满即圆满，主动反过度消费。强交互重做：CSS 手绘吉祥物可眨眼 / 拍拍挤压 / 随场景切换表情，4 页 Demo（聊聊 / 满值 / 满记 / 五幕剧）。
+
+- **在线 Demo**：[GitHub Pages](https://keyuchen-del.github.io/Emotional-Companion-Agent/)（落地页右侧手机即小满）
+- **设计映射**：[README](cases/xiaoman/) ｜ [品牌特有设计](cases/xiaoman/design-notes.md)
+
 ### [花小呗 · 支付宝花呗 AI 助手](cases/huaxiaobei/)
 
 首个完整实例。以花呗 AI 助手「花小呗」为载体，完整落地 6 章设计原则：
 
-- **静态预览**：[GitHub Pages Demo](https://keyuchen-del.github.io/Emotional-Companion-Agent/)（手机模拟器框架）
+- **静态预览**：[cases/huaxiaobei/](cases/huaxiaobei/)（手机模拟器框架）
 - **完整体验**：启动后端后对话由真实 LLM 驱动
 
 ## 路线图
 
 - [x] 通用化设计手册（6 章去品牌化原则）
 - [x] 首个落地案例（花小呗 · 4 页可交互 Demo）
+- [x] 第二个案例（小满 Mun · 消费陪伴 · 中性品牌 · 强交互重做）
 - [x] MVP 后端（FastAPI + pgvector + 三层记忆 + 亲密度）
 - [x] 展示落地页（手机模拟器 + 产品介绍）
 - [ ] 多角色支持（不同 Agent 人设 + 话术风格）
